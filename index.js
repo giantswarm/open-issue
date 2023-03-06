@@ -23,33 +23,32 @@ async function run() {
       repoName = github.context.repo.repo 
     }
 
-    issues.forEach(async issue => {
-      try {
+    issues.forEach(issue => {
         //check if exists
         const regex = /\s/g;
         let q = issue.title.replace(regex, '+') + "+in:title+is:issue+is:open+repo:" +org+ "/" +repoName;
         core.info("Searching for issue: " + q);
-        issues = await octokit.rest.search.issuesAndPullRequests({
+        octokit.rest.search.issuesAndPullRequests({
           q,
-        });
+        }).then(issues => {
+          core.info("Issues found: " + JSON.stringify(issues.data));
+          if (issues.data && issues.data.total_count > 0) {
+            return
+          }
 
-        core.info("Issues found: " + JSON.stringify(issues.data));
-        if (issues.data && issues.data.total_count > 0) {
-          return
-        }
-
-        //create issue
-        const response = await octokit.rest.issues.create({
-          owner: org,
-          repo: repoName,
-          title: issue.title,
-          body: issue.message,
-          labels: issue.owner
+          //create issue
+          octokit.rest.issues.create({
+            owner: org,
+            repo: repoName,
+            title: issue.title,
+            body: issue.message,
+            labels: issue.owner
+          }).then(response => {
+            core.info("Response from issue creation: " + JSON.stringify(response.data));
+          });
+        }).catch(error => {
+          core.error(error.message);
         });
-        core.info("Response from issue creation: " + JSON.stringify(response.data));
-      } catch (error) {
-        core.error(error.message);
-      }
     });
 }
 
