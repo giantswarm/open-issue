@@ -25,7 +25,7 @@ Repository name. If not passed used the one from workflow.
 There is not output but creation of GitHub Issues in targeted repository.
 
 ```yaml
-uses: giant/issue-action@v1
+uses: giantswarm/open-issue@main # rather pin a specific version
 with:
   token: ${{ secrets.ISSUE_AUTOMATION }} # access to target repo
   org: giantswarm
